@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.content.Intent;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -29,12 +30,14 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import model.Images;
 import retrofit.RestAdapter;
 import retrofit.Callback;
+import retrofit.android.MainThreadExecutor;
 import retrofit.client.Response;
 import retrofit.RetrofitError;
 
@@ -52,6 +55,7 @@ public class MainActivityFragment extends Fragment {
     WebView webView;
     ListView followersListView;
     ArrayAdapter followersListViewAdapter;
+    HashMap<String, String> userNameToUserId = new HashMap<String, String>();
 
     public String streamToString(InputStream is) throws IOException {
         String string = "";
@@ -104,6 +108,7 @@ public class MainActivityFragment extends Fragment {
                 ArrayList<String> list = new ArrayList<String>();
                 for (User user : followedBy.getUsers())
                 {
+                    userNameToUserId.put(user.getUsername(), user.getId());
                     list.add(user.getUsername());
                 }
                 followersListViewAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list);
@@ -135,21 +140,29 @@ public class MainActivityFragment extends Fragment {
                                                              RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(InstagramAPI.APIURL).build();
                                                              igmetricsAPI ig = restAdapter.create(igmetricsAPI.class);
                                                              ArrayList<String> users = new ArrayList<String>();
-                                                             users.add(new String("test"));
+
+                                                             String user = (String) followersListViewAdapter.getItem(position);
+                                                             String userid = userNameToUserId.get(user);
+                                                             users.add(new String(userid));
+
                                                              ig.likeUserPhotos(users, access_token, new Callback<Images>() {
                                                                  @Override
                                                                  public void success(Images images, Response response) {
-                                                                     List<String> likedImages = images.getImages();
-                                                                     //for(String image : likedImages) {
-
-                                                                     //}
+                                                                     final List<String> likedImages = images.getImages();
 
                                                                      AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
                                                                      alertDialogBuilder.setTitle("Images liked");
                                                                      alertDialogBuilder
                                                                              .setMessage("Number of images liked: " + likedImages.size())
                                                                              .setCancelable(false);
-                                                                     alertDialogBuilder.setPositiveButton("OK",null);
+                                                                     alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                                         @Override
+                                                                         public void onClick(DialogInterface dialog, int which) {
+                                                                             Intent intent = new Intent(getActivity(), GalleryActivity.class);
+                                                                             intent.putExtra("urls", likedImages.toArray());
+                                                                             getActivity().startActivity(intent);
+                                                                         }
+                                                                     });
                                                                      AlertDialog alertDialog = alertDialogBuilder.create();
                                                                      alertDialog.show();
                                                                  }
@@ -218,14 +231,9 @@ public class MainActivityFragment extends Fragment {
                     }
                     return false;
                 }
-            }
+        });
 
-            );
-
-            webView.getSettings().
-
-            setJavaScriptEnabled(true);
-
+        webView.getSettings().setJavaScriptEnabled(true);
         webView.loadUrl(authURLString);
-        }
     }
+}
