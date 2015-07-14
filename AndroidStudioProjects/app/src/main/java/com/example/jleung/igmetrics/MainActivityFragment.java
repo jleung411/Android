@@ -159,7 +159,8 @@ public class MainActivityFragment extends Fragment {
                                                                          @Override
                                                                          public void onClick(DialogInterface dialog, int which) {
                                                                              Intent intent = new Intent(getActivity(), GalleryActivity.class);
-                                                                             intent.putExtra("urls", likedImages.toArray());
+                                                                             intent.putStringArrayListExtra("urls", new ArrayList<String>(likedImages));
+                                                                             //intent.putExtra("urls", likedImages.toArray());
                                                                              getActivity().startActivity(intent);
                                                                          }
                                                                      });

@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.content.Intent;
 
+import java.util.ArrayList;
+
 
 /**
  * A placeholder fragment containing a simple view.
@@ -30,20 +32,22 @@ public class GalleryActivityFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
 
-        String[] urls;
+        ArrayList<String> urls;
         if (savedInstanceState == null) {
             Intent intent = getActivity().getIntent();
             if(intent == null) {
                 urls = null;
             } else {
-                urls = intent.getStringArrayExtra("urls");
+                urls = intent.getStringArrayListExtra("urls");
             }
         } else {
-            urls = (String[]) savedInstanceState.getSerializable("urls");
+            urls = (ArrayList<String>) savedInstanceState.getSerializable("urls");
         }
 
+        String[] extra = urls.toArray(new String[urls.size()]);
+
         thumbsListView = (ListView) getView().findViewById(R.id.thumbsListView);
-        CustomListAdapter adapter = new CustomListAdapter(getActivity(), urls);
+        CustomListAdapter adapter = new CustomListAdapter(getActivity(), extra);
         thumbsListView.setAdapter(adapter);
     }
 }
